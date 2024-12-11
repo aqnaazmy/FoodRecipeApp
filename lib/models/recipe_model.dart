@@ -1,8 +1,10 @@
+import 'detail_model.dart';
+
 class RecipeModel {
   final int id;
   final String title;
   final String photoUrl;
-  final int likesCount;
+  int likesCount;
   final int commentsCount;
   final String description;
   final String ingredients;
@@ -10,6 +12,7 @@ class RecipeModel {
   final DateTime createdAt;
   final DateTime updatedAt;
   final UserModel user;
+  bool isLiked;
 
   RecipeModel({
     required this.id,
@@ -23,6 +26,7 @@ class RecipeModel {
     required this.createdAt,
     required this.updatedAt,
     required this.user,
+    this.isLiked = false, // Default tidak di-like
   });
 
   factory RecipeModel.fromJson(Map<String, dynamic> json) {
@@ -42,6 +46,7 @@ class RecipeModel {
           ? DateTime.parse(json['updated_at'])
           : DateTime.now(),
       user: UserModel.fromJson(json['user'] ?? {}),
+      isLiked: json['is_liked'] ?? false, // Mengambil data dari JSON
     );
   }
 
@@ -58,34 +63,7 @@ class RecipeModel {
       'created_at': createdAt.toIso8601String(),
       'updated_at': updatedAt.toIso8601String(),
       'user': user.toJson(),
-    };
-  }
-}
-
-class UserModel {
-  final int id;
-  final String name;
-  final String email;
-
-  UserModel({
-    required this.id,
-    required this.name,
-    required this.email,
-  });
-
-  factory UserModel.fromJson(Map<String, dynamic> json) {
-    return UserModel(
-      id: json['id'] ?? 0,
-      name: json['name'] ?? 'Anonymous',
-      email: json['email'] ?? 'noemail@example.com',
-    );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'name': name,
-      'email': email,
+      'is_liked': isLiked, // Tambahkan ke JSON
     };
   }
 }

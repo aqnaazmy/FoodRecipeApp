@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_pertemuan7/models/recipe_model.dart';
 import 'package:flutter_pertemuan7/services/recipe_services.dart';
 import 'package:flutter_pertemuan7/ui/edit_recipe_screen.dart';
-import 'package:flutter_pertemuan7/ui/add_recipe_screen.dart'; // Tambahkan ini untuk screen tambah resep
+import 'package:flutter_pertemuan7/ui/add_recipe_screen.dart';
+
+import 'detail_screen.dart'; // Tambahkan ini untuk screen tambah resep
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -60,88 +62,124 @@ class _HomeScreenState extends State<HomeScreen> {
           } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
             return const Center(child: Text('No recipes available'));
           } else {
-            return ListView.builder(
+            return GridView.builder(
+              padding: const EdgeInsets.all(8.0),
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                crossAxisSpacing: 8.0,
+                mainAxisSpacing: 8.0,
+                childAspectRatio: 0.75,
+              ),
               itemCount: snapshot.data!.length,
               itemBuilder: (context, index) {
                 final recipe = snapshot.data![index];
-                return ListTile(
-                  leading: recipe.photoUrl.isNotEmpty
-                      ? Image.network(
-                          recipe.photoUrl,
-                          width: 50,
-                          fit: BoxFit.cover,
-                        )
-                      : const Icon(Icons.image, size: 50),
-                  title: Text(recipe.title),
-                  subtitle: Text(recipe.description),
-                  trailing: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      IconButton(
-                        icon: const Icon(Icons.edit),
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => EditRecipeScreen(
-                                recipeId: recipe.id,
-                                initialTitle: recipe.title,
-                                initialDescription: recipe.description,
-                                initialCookingMethod: recipe.cookingMethod,
-                                initialIngredients: recipe.ingredients,
-                                initialPhotoUrl: recipe.photoUrl,
-                              ),
-                            ),
-                          ).then((value) {
-                            if (value == true) {
-                              setState(() {
-                                futureRecipes = _recipeService.getAllRecipes();
-                              });
-                            }
-                          });
-                        },
+                return GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => RecipeDetailScreen(
+                          recipeId: recipe.id,
+                          initialIsLiked: false,
+                          initialLikesCount: recipe.likesCount,
+                        ),
                       ),
-                      IconButton(
-                        icon: const Icon(Icons.delete),
-                        onPressed: () async {
-                          final confirmed = await showDialog(
-                            context: context,
-                            builder: (context) => AlertDialog(
-                              title: const Text('Delete Recipe'),
-                              content: const Text(
-                                  'Are you sure you want to delete this recipe?'),
-                              actions: [
-                                TextButton(
-                                  onPressed: () =>
-                                      Navigator.pop(context, false),
-                                  child: const Text('Cancel'),
-                                ),
-                                TextButton(
-                                  onPressed: () =>
-                                      Navigator.pop(context, true),
-                                  child: const Text('Delete'),
-                                ),
-                              ],
-                            ),
-                          );
+                    );
 
-                          if (confirmed == true) {
-                            try {
-                              await _recipeService.deleteRecipe(recipe.id);
-                              setState(() {
-                                futureRecipes = _recipeService.getAllRecipes();
-                              });
-                            } catch (e) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(content: Text('Failed to delete: $e')),
-                              );
-                            }
-                          }
-                        },
-                      ),
-                    ],
+                  },
+                  child: Card(
+                    elevation: 4,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: recipe.photoUrl.isNotEmpty
+                              ? ClipRRect(
+                            borderRadius: const BorderRadius.vertical(
+                                top: Radius.circular(8.0)),
+                            child: Image.network(
+                              recipe.photoUrl,
+                              width: double.infinity,
+                              fit: BoxFit.cover,
+                            ),
+                          )
+                              : Container(
+                            color: Colors.grey[300],
+                            child: const Icon(
+                              Icons.image,
+                              size: 50,
+                            ),
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Text(
+                            recipe.title,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                          child: Text(
+                            recipe.description,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.only(left: 8.0, right: 8.0, bottom: 8.0, top: 11.0),
+                          child: Row(
+                            children: [
+                              GestureDetector(
+                                onTap: () {
+                                  setState(() {
+                                    recipe.isLiked = !recipe.isLiked; // Toggle status like
+                                    if (recipe.isLiked) {
+                                      recipe.likesCount += 1;
+                                    } else {
+                                      recipe.likesCount -= 1;
+                                    }
+                                  });
+                                },
+                                child: Icon(
+                                  recipe.isLiked ? Icons.favorite : Icons.favorite_border,
+                                  size: 15,
+                                  color: recipe.isLiked ? Colors.red : Colors.grey,
+                                ),
+                              ),
+                              SizedBox(width: 4),
+                              Text(
+                                '${recipe.likesCount} ',
+                                style: TextStyle(fontSize: 14),
+                              ),
+                              SizedBox(width: 4),
+                              GestureDetector(
+                                onTap: (){
+
+                                },
+                                child: const Icon(
+                                    Icons.comment_outlined, size: 15, color: Colors.grey
+                                ),
+                              ),
+                              SizedBox(width: 4),
+                              Text(
+                                '${recipe.commentsCount} ',
+                                style: TextStyle(fontSize: 14),
+                              ),
+                            ],
+                          ),
+                        ),
+
+
+                      ],
+                    ),
                   ),
                 );
+
               },
             );
           }

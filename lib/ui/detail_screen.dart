@@ -2,13 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_pertemuan7/models/recipe_model.dart';
 import 'package:flutter_pertemuan7/services/detail_services.dart';
 
+import 'edit_recipe_screen.dart';
+
 class RecipeDetailScreen extends StatefulWidget {
-  // ID resep, status awal bintang (like), dan jumlah like dari halaman sebelumnya
   final int recipeId;
   final bool initialIsLiked;
   final int initialLikesCount;
 
-  // Constructor untuk menerima data dari layar sebelumnya (Home Screen)
   RecipeDetailScreen({
     required this.recipeId,
     required this.initialIsLiked,
@@ -20,31 +20,23 @@ class RecipeDetailScreen extends StatefulWidget {
 }
 
 class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
-  // Future untuk mengambil data detail resep
   late Future<RecipeModel> recipeDetail;
-  // Instance service untuk mendapatkan data dari API atau sumber data
   final RecipeService _recipeService = RecipeService();
 
-  // Variabel untuk melacak status bintang dan jumlah like
   late bool _isLiked;
   late int _likesCount;
 
   @override
   void initState() {
     super.initState();
-    // Inisialisasi status awal bintang dan jumlah like dari data yang diterima
     _isLiked = widget.initialIsLiked;
     _likesCount = widget.initialLikesCount;
-
-    // Fetch detail resep berdasarkan ID
     recipeDetail = _recipeService.getRecipeById(widget.recipeId);
   }
 
-  // Fungsi untuk mengubah status bintang dan mengupdate jumlah like
   void _toggleLike() {
     setState(() {
-      _isLiked = !_isLiked; // Toggle status bintang
-      // Update jumlah like berdasarkan status bintang
+      _isLiked = !_isLiked;
       if (_isLiked) {
         _likesCount += 1;
       } else {
@@ -56,11 +48,12 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFFEBEFF3),
       appBar: AppBar(
-        title: Text('Detail'),
-        // Tombol kembali yang mengirimkan data status bintang dan jumlah like
+        backgroundColor: const Color(0xFFF3F5F7),
+        title: const Text('Detail'),
         leading: IconButton(
-          icon: Icon(Icons.arrow_back),
+          icon: const Icon(Icons.arrow_back),
           onPressed: () {
             Navigator.pop(context, {
               'isLiked': _isLiked,
@@ -69,105 +62,135 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
           },
         ),
       ),
-      body: FutureBuilder<RecipeModel>(
-        future: recipeDetail, // Future untuk mendapatkan detail resep
-        builder: (context, snapshot) {
-          // Jika masih menunggu data
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: CircularProgressIndicator());
-          }
-          // Jika terjadi error saat fetch data
-          else if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
-          }
-          // Jika tidak ada data
-          else if (!snapshot.hasData) {
-            return Center(child: Text('Tidak ada data'));
-          }
-          // Jika data berhasil didapatkan
-          else {
-            final recipe = snapshot.data!;
-            return SingleChildScrollView(
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Gambar Resep
-                    Image.network(recipe.photoUrl),
-                    SizedBox(height: 16),
-
-                    // Judul Resep
-                    Text(
-                      recipe.title,
-                      style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-
-                    // Bagian Like dan Comment
-                    Row(
+      body: Stack(
+        children: [
+          FutureBuilder<RecipeModel>(
+            future: recipeDetail,
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator());
+              } else if (snapshot.hasError) {
+                return Center(child: Text('Error: ${snapshot.error}'));
+              } else if (!snapshot.hasData) {
+                return const Center(child: Text('Tidak ada data'));
+              } else {
+                final recipe = snapshot.data!;
+                return SingleChildScrollView(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        GestureDetector(
-                          onTap: _toggleLike, // Toggle bintang ketika ditekan
-                          child: Icon(
-                            _isLiked ? Icons.star : Icons.star_border,
-                            color: _isLiked ? Colors.yellow : Colors.grey, // Warna bintang
+                        Image.network(recipe.photoUrl),
+                        const SizedBox(height: 16),
+                        Text(
+                          recipe.title,
+                          style: const TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
-                        SizedBox(width: 4),
-                        // Jumlah likes
-                        Text("$_likesCount likes"),
-                        SizedBox(width: 16),
-                        Icon(Icons.comment),
-                        SizedBox(width: 4),
-                        // Jumlah komentar
-                        Text("${recipe.commentsCount} comments"),
+                        Row(
+                          children: [
+                            GestureDetector(
+                              onTap: _toggleLike,
+                              child: Icon(
+                                _isLiked ? Icons.star : Icons.star_border,
+                                color: _isLiked ? Colors.yellow : Colors.grey,
+                              ),
+                            ),
+                            const SizedBox(width: 4),
+                            Text("$_likesCount likes"),
+                            const SizedBox(width: 16),
+                            const Icon(Icons.comment),
+                            const SizedBox(width: 4),
+                            Text("${recipe.commentsCount} comments"),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+                        const Text(
+                          'Description',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(recipe.description),
+                        const SizedBox(height: 16),
+                        const Text(
+                          'Ingredients',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(recipe.ingredients),
+                        const SizedBox(height: 16),
+                        const Text(
+                          'Steps',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(recipe.cookingMethod),
+                        const SizedBox(height: 80),
                       ],
                     ),
-                    SizedBox(height: 16),
-
-                    // Deskripsi Resep
-                    Text(
-                      'Description',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
+                  ),
+                );
+              }
+            },
+          ),
+          Align(
+            alignment: Alignment.bottomCenter,
+            child: Container(
+              color: const Color(0xFFEBEFF3),
+              padding: const EdgeInsets.only(left: 16, right: 16, bottom: 32),
+              child: SizedBox(
+                width: double.infinity,
+                height: 55,
+                child: InkWell(
+                  onTap: () {
+                    // navigasi ke edit screen
+                  },
+                  child: Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(10),
+                      color: const Color(0xFFEBEFF3),
+                      boxShadow: const [
+                        BoxShadow(
+                          blurRadius: 12.0,
+                          offset: Offset(-8, -8),
+                          color: Colors.white,
+                        ),
+                        BoxShadow(
+                          blurRadius: 12.0,
+                          offset: Offset(8, 8),
+                          color: Color(0xFFD4D4D4),
+                        ),
+                      ],
+                    ),
+                    child: const Center(
+                      child: Text(
+                        'Edit Recipe',
+                        style: TextStyle(
+                          color: Color(0xFF09060D),
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
                     ),
-                    SizedBox(height: 4),
-                    Text(recipe.description),
-                    SizedBox(height: 16),
-
-                    // Bahan-bahan Resep (Ingredients)
-                    Text(
-                      'Ingredients',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    SizedBox(height: 4),
-                    Text(recipe.ingredients),
-                    SizedBox(height: 16),
-
-                    // Langkah-langkah Memasak (Steps)
-                    Text(
-                      'Steps',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    SizedBox(height: 4),
-                    Text(recipe.cookingMethod),
-                  ],
+                  ),
                 ),
               ),
-            );
-          }
-        },
+            ),
+          ),
+
+        ],
       ),
     );
   }

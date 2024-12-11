@@ -8,9 +8,8 @@ const String baseUrl = 'https://recipe.incube.id/api';
 class RecipeService {
   final SessionService _sessionService = SessionService();
 
-  // Mendapatkan semua resep
 Future<List<RecipeModel>> getAllRecipes() async {
-  final token = await _sessionService.getToken(); // Mendapatkan token untuk autentikasi
+  final token = await _sessionService.getToken();
   final response = await http.get(
     Uri.parse('$baseUrl/recipes'),
     headers: {'Authorization': 'Bearer $token'},
@@ -25,7 +24,6 @@ Future<List<RecipeModel>> getAllRecipes() async {
 }
 
 
-  // Menambah resep baru
   Future<bool> createRecipe({
     required String title,
     required String description,
@@ -52,7 +50,6 @@ Future<List<RecipeModel>> getAllRecipes() async {
     return response.statusCode == 201;
   }
 
-  // Memperbarui resep
   Future<bool> updateRecipe({
     required int id,
     required String title,
@@ -80,7 +77,6 @@ Future<List<RecipeModel>> getAllRecipes() async {
     return response.statusCode == 200;
   }
 
-  // Menghapus resep
   Future<bool> deleteRecipe(int id) async {
     final token = await _sessionService.getToken();
 
@@ -92,5 +88,6 @@ Future<List<RecipeModel>> getAllRecipes() async {
     return response.statusCode == 200;
   }
 
-  
+
+
 }

@@ -11,7 +11,6 @@ class ResponseModel {
     this.errors,
   });
 
-  // Factory constructor untuk membuat objek dari JSON
   factory ResponseModel.fromJson(Map<String, dynamic> json) {
     return ResponseModel(
       status: json['status'] as String,
